@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>人像背景分割</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <style>
+        /* 整体页面背景色设置为柔和的浅灰色，使页面看起来更舒适 */
+        body {
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            line-height: 1.5;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* loading遮罩层样式，使其在页面中央显示加载提示文字 */
+        #loading {
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 10;
+            width: 100vw;
+            height: 100vh;
+            line-height: 100vh;
+            background-color: rgba(0, 0, 0,.4);
+            color: #fff;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        /* 页面头部样式 */
+        header {
+            background-color: #3399ff;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid #ccc;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 30px;
+            font-weight: bold;
+        }
+
+        /* 各功能模块划分，添加外边距和内边距，使布局更清晰，添加边框和圆角让模块更明显 */
+        section {
+            margin-bottom: 20px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        /* 颜色选择区域的整体样式，添加一定间距 */
+      .color-selection {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 20px;
+        }
+
+        /* 单个颜色方块的样式，调整颜色、大小、圆角等 */
+      .color-box {
+            width: 80px;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            font-weight: bold;
+            color: #fff;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            /* 鼠标悬停时稍微改变透明度，增强交互反馈 */
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 选中的颜色方块样式，增加阴影和放大效果，改变文字颜色，添加淡绿色背景色过渡效果 */
+      .selected {
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            transform: scale(1.05);
+            color: #fff;
+            background-color: rgba(0, 200, 0, 0.2);
+            transition: all 0.3s ease;
+        }
+
+        /* 白色颜色方块的边框样式，因为背景色为白色所以添加边框区分 */
+      .color-box[style*="background-color: #FFFFFF"] {
+            border: 1px solid #000;
+        }
+
+        /* 通用的容器样式，让内部元素居中排列，添加一定内边距 */
+      .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        /* 按钮通用样式，调整背景色、文字颜色、圆角、间距等，添加过渡效果和鼠标悬停、按下效果 */
+      .join-button {
+            width: 100%;
+            max-width: 300px;
+            background-color: #3399ff;
+            border-radius: 5px;
+            padding: 15px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+        }
+
+      .join-button:hover {
+            background-color: #007bff;
+            transform: scale(1.05) rotate(2deg);
+            opacity: 0.9;
+        }
+
+      .join-button:active {
+            background-color: #0056b3;
+        }
+
+        /* 图片样式，设置最大宽度为100%，使其自适应容器宽度 */
+        img {
+            max-width: 100%;
+            display: block;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 输入框样式，添加边框、圆角，聚焦时改变边框颜色，去除默认的轮廓样式，优化排版 */
+        input[type="number"],
+        input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            transition: border-color 0.3s ease;
+        }
+
+        input[type="number"]:focus,
+        input[type="file"]:focus {
+            border-color: #3399ff;
+            outline: none;
+        }
+
+        /* 表单样式优化，让标签和输入框对齐 */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        form label {
+            margin-bottom: 5px;
+        }
+
+        form input {
+            margin-bottom: 15px;
+        }
+
+        /* 表单的提交按钮样式，和其他按钮保持一致风格 */
+        input[type="submit"] {
+            width: 100%;
+            max-width: 300px;
+            background-color: #3399ff;
+            border-radius: 5px;
+            padding: 15px;
+            color: #fff;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #007bff;
+        }
+
+        button {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            transform: scale(1.05) rotate(2deg);
+            opacity: 0.9;
+        }
+
+        /* 动画效果相关，淡入显示动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+       .fade-in {
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* 响应式布局适配，小屏幕下按钮样式调整 */
+        @media (max-width: 768px) {
+           .join-button {
+                max-width: none;
+                padding-left: 10px;
+                padding-right: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>证件照制作</h1>
+    </header>
+    <main>
+        <!-- 展示图片宽度、高度等信息的模块 -->
+        <section class="image-info-section fade-in">
+            <h1>参数显示</h1>
+            <p id="width-display">Width: </p>
+            <p id="height-display">Height: </p>
+            <p id="operate-name">name: </p>
+            <img id="image" src="./bgImgs/2.jpg" style="max-width: 100%;" />
+            <img id="bainen" src="./bgImgs/bainen.png" style="display:none;"/>
+            <canvas id="back"></canvas>
+            <canvas id="myCanvas"></canvas>
+            <input type="file" id="uploadImg">
+        </section>
+
+        <!-- 颜色选择和尺寸选择按钮的模块 -->
+        <section class="button-section fade-in">
+            <div class="color-selection">
+                <button id="redcolor" class="color-box" data-color="#D9001B" data-colorshow="红色" style="background-color: #D9001B;">红色</button>
+                <button id="bluecolor" class="color-box" data-color="#02A7F0" data-colorshow="蓝色" style="background-color: #02A7F0;">蓝色</button>
+                <button id="whitecolor" class="color-box" data-color="#FFFFFF" data-colorshow="白色" style="background-color: #FFFFFF; border: 1px solid #000;">白色</button>
+            </div>
+            <div class="color-selection">
+                <button id="yicun" class="join-button" data-width="295" data-height="413" data-name="一寸">一寸</button>
+                <button id="ercun" class="join-button" data-width="413" data-height="579" data-name="二寸">二寸</button>
+                <button id="xiaoyicun" class="join-button" data-width="260" data-height="378" data-name="小一寸">小一寸</button>
+                <button id="xiaoercun" class="join-button" data-width="413" data-height="531" data-name="小二寸（国考）">小二寸（国考）</button>
+                <button id="computertest" class="join-button" data-width="390" data-height="567" data-name="计算机等级考试">计算机等级考试</button>
+                <button id="daxuesheng" class="join-button" data-width="480" data-height="640" data-name="大学生图像信息采集">大学生图像信息采集</button>
+            </div>
+            <button id="changecolor">改变背景色</button>
+            <button id="downloadBtn">下载处理后的图片</button>
+        </section>
+
+        <!-- 实用小功能相关的输入框、按钮等模块 -->
+        <section class="utility-section fade-in">
+            <h1>实用小功能</h1>
+            <form id="ageForm">
+                <label for="width">宽度:</label>
+                <input type="number" id="width" name="width">
+                <label for="height">高度:</label>
+            <input type="number" id="height" name="height">
+            <br><br>
+            <input type="submit" value="尺寸输入">
+        </form>
+        <p id="inputsizewidth">输入宽度尺寸: </p>
+        <p id="inputsizeheight">输入宽高度尺寸: </p>
+        <p id="inputqualitynum">输入质量参数: </p>
+        <p id="orginalwidth">原图宽度尺寸: </p>
+        <p id="orginalheight">原图高度尺寸: </p>
+        <p id="outputform">输出格式: </p>
+        <button id="jpeg" class="join-button" data-form="image/jpeg" data-name="jpg">jpg</button>
+        <button id="png" class="join-button" data-form="image/png" data-name="png">png</button>
+        <button id="qm1" class="join-button" data-num="0.95" data-name="0.95">0.95</button>
+        <button id="qm2" class="join-button" data-num="0.9" data-name="0.9">0.9</button>
+        <button id="refresh">更新参数并处理图片</button>
+        <canvas id="back1"></canvas>
+        <img id="image1" src="./2.jpg" style="max-width: 100%;" />
+        <canvas id="myCanvas1"></canvas>
+        <input type="file" id="uploadImg1">
+        <button id="downloadBtn1">下载处理后的图片</button>
+    </section>
+
+    <div id="loading">loading...</div>
+<script type="text/javascript" src="index.js"></script></body>
+
+</html>
